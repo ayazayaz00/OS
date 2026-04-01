@@ -1,0 +1,227 @@
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+using namespace std;
+
+// Print frames
+void printFrames(vector<int> &frames) {
+    for (int x : frames) {
+        if (x == -1) cout << "- ";
+        else cout << x << " ";
+    }
+    cout << endl;
+}
+
+// ---------------- FIFO ----------------
+void FIFO(vector<int> pages, int capacity) {
+    vector<int> frames(capacity, -1);
+    int index = 0, faults = 0;
+
+    cout << "\n--- FIFO ---\n";
+
+    for (int i = 0; i < pages.size(); i++) {
+        bool hit = false;
+
+        for (int j = 0; j < capacity; j++) {
+            if (frames[j] == pages[i]) {
+                hit = true;
+                break;
+            }
+        }
+
+        if (!hit) {
+            frames[index] = pages[i];
+            index = (index + 1) % capacity;
+            faults++;
+            cout << "Page " << pages[i] << " -> Fault | ";
+        } else {
+            cout << "Page " << pages[i] << " -> Hit   | ";
+        }
+
+        printFrames(frames);
+    }
+
+    cout << "Total Page Faults: " << faults << endl;
+}
+
+// ---------------- LRU ----------------
+void LRU(vector<int> pages, int capacity) {
+    vector<int> frames(capacity, -1);
+    unordered_map<int, int> lastUsed;
+    int faults = 0;
+
+    cout << "\n--- LRU ---\n";
+
+    for (int i = 0; i < pages.size(); i++) {
+        bool hit = false;
+
+        for (int j = 0; j < capacity; j++) {
+            if (frames[j] == pages[i]) {
+                hit = true;
+                break;
+            }
+        }
+
+        if (!hit) {
+            int lruIndex = 0, minTime = 1e9;
+
+            for (int j = 0; j < capacity; j++) {
+                if (frames[j] == -1) {
+                    lruIndex = j;
+                    break;
+                }
+                if (lastUsed[frames[j]] < minTime) {
+                    minTime = lastUsed[frames[j]];
+                    lruIndex = j;
+                }
+            }
+
+            frames[lruIndex] = pages[i];
+            faults++;
+            cout << "Page " << pages[i] << " -> Fault | ";
+        } else {
+            cout << "Page " << pages[i] << " -> Hit   | ";
+        }
+
+        lastUsed[pages[i]] = i;
+        printFrames(frames);
+    }
+
+    cout << "Total Page Faults: " << faults << endl;
+}
+
+// ---------------- MRU ----------------
+void MRU(vector<int> pages, int capacity) {
+    vector<int> frames(capacity, -1);
+    unordered_map<int, int> lastUsed;
+    int faults = 0;
+
+    cout << "\n--- MRU ---\n";
+
+    for (int i = 0; i < pages.size(); i++) {
+        bool hit = false;
+
+        for (int j = 0; j < capacity; j++) {
+            if (frames[j] == pages[i]) {
+                hit = true;
+                break;
+            }
+        }
+
+        if (!hit) {
+            int mruIndex = 0, maxTime = -1;
+
+            for (int j = 0; j < capacity; j++) {
+                if (frames[j] == -1) {
+                    mruIndex = j;
+                    break;
+                }
+                if (lastUsed[frames[j]] > maxTime) {
+                    maxTime = lastUsed[frames[j]];
+                    mruIndex = j;
+                }
+            }
+
+            frames[mruIndex] = pages[i];
+            faults++;
+            cout << "Page " << pages[i] << " -> Fault | ";
+        } else {
+            cout << "Page " << pages[i] << " -> Hit   | ";
+        }
+
+        lastUsed[pages[i]] = i;
+        printFrames(frames);
+    }
+
+    cout << "Total Page Faults: " << faults << endl;
+}
+
+// ---------------- OPTIMAL ----------------
+void Optimal(vector<int> pages, int capacity) {
+    vector<int> frames(capacity, -1);
+    int faults = 0;
+
+    cout << "\n--- OPTIMAL ---\n";
+
+    for (int i = 0; i < pages.size(); i++) {
+        bool hit = false;
+
+        for (int j = 0; j < capacity; j++) {
+            if (frames[j] == pages[i]) {
+                hit = true;
+                break;
+            }
+        }
+
+        if (!hit) {
+            int replaceIndex = -1, farthest = i;
+
+            for (int j = 0; j < capacity; j++) {
+                int k;
+                for (k = i + 1; k < pages.size(); k++) {
+                    if (frames[j] == pages[k]) break;
+                }
+
+                if (k > farthest) {
+                    farthest = k;
+                    replaceIndex = j;
+                }
+
+                if (k == pages.size()) {
+                    replaceIndex = j;
+                    break;
+                }
+            }
+
+            if (replaceIndex == -1) replaceIndex = 0;
+
+            frames[replaceIndex] = pages[i];
+            faults++;
+            cout << "Page " << pages[i] << " -> Fault | ";
+        } else {
+            cout << "Page " << pages[i] << " -> Hit   | ";
+        }
+
+        printFrames(frames);
+    }
+
+    cout << "Total Page Faults: " << faults << endl;
+}
+
+// ---------------- MAIN MENU ----------------
+int main() {
+    int n, capacity, choice;
+
+    cout << "Enter number of pages: ";
+    cin >> n;
+
+    vector<int> pages(n);
+    cout << "Enter page reference string: ";
+    for (int i = 0; i < n; i++) cin >> pages[i];
+
+    cout << "Enter number of frames: ";
+    cin >> capacity;
+
+    do {
+        cout << "\n\n===== MENU =====\n";
+        cout << "1. FIFO\n";
+        cout << "2. LRU\n";
+        cout << "3. MRU\n";
+        cout << "4. Optimal\n";
+        cout << "5. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: FIFO(pages, capacity); break;
+            case 2: LRU(pages, capacity); break;
+            case 3: MRU(pages, capacity); break;
+            case 4: Optimal(pages, capacity); break;
+            case 5: cout << "Exiting...\n"; break;
+            default: cout << "Invalid choice!\n";
+        }
+
+    } while (choice != 5);
+
+    return 0;
+}
