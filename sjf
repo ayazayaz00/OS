@@ -1,0 +1,59 @@
+#include<iostream>
+#include<algorithm>
+#include<vector>
+using namespace std;
+
+int main()
+{
+	vector<vector<int>> A(100,vector<int>(4)); // P    BT    WT    TAT 
+	int i,j,n,total=0,index,temp;
+	float avgwt,avgtat;
+	cout<<"Enter number of processes : "<<endl;
+	cin>>n;
+	cout<<"burst time : "<<endl;
+	for(int i=0;i<n;i++)
+	{
+		cout<<"p"<<i+1<<": ";
+		cin>>A[i][1];
+	}
+	//sorting acc to burst time
+	for(i=0;i<n;i++)
+	{
+		index=i;
+		for(j=i+1;j<n;j++)
+		{	
+			if(A[j][1]<A[index][1])
+			index=j;
+		}
+//	    temp=A[i][1];
+//	    A[i][1]=A[index][1];
+//	    A[index][1]=temp;
+	    swap(A[i][1],A[index][1]);
+	    temp=A[i][0];
+	    A[i][0]=A[index][0];
+	    A[index][0]=temp;
+		//swap(A[i][0],A[index][0]);
+	}
+	A[0][2]=0;
+	// calculating waiting time
+	for(i=1;i<n;i++)
+	{
+		A[i][2]=0;
+		for(j=0;j<i;j++)
+		  A[i][2]+=A[j][1];
+		total+=A[i][2];  
+	}
+	avgwt=(float)total/n;
+	total=0;
+	cout<<"P      BT     WT    TAT"<<endl;
+	// CALCULATING TURN AROUND TIME 
+	for(i=0;i<n;i++)
+	{
+		A[i][3]=A[i][1]+A[i][2];
+		total+=A[i][3];
+		cout<<"P"<<i+1<<"      "<<A[i][1]<<"      "<<A[i][2]<<"     "<<A[i][3]<<endl; 
+	}
+	avgtat=(float)total/n;
+	cout<<"Average waiting time= "<<avgwt<<endl;
+	cout<<"Average turn around time= "<<avgtat<<endl;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+}
