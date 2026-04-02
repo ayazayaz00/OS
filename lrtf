@@ -1,0 +1,121 @@
+#include <iostream>
+#include <vector>
+#include <iomanip>
+using namespace std;
+
+struct Process {
+    int pid;
+    int arrival;
+    int burst;
+    int remaining;
+    int completion;
+    int waiting;
+    int turnaround;
+};
+
+int main() {
+    int n;
+    cout << "Enter number of processes: ";
+    cin >> n;
+
+    vector<Process> p(n);
+
+    // Input
+    for(int i = 0; i < n; i++) {
+        p[i].pid = i + 1;
+        cout << "Enter arrival time for P" << i+1 << ": ";
+        cin >> p[i].arrival;
+        cout << "Enter burst time for P" << i+1 << ": ";
+        cin >> p[i].burst;
+        p[i].remaining = p[i].burst;
+    }
+
+    int completed = 0;
+    int currentTime = 0;
+
+    vector<int> ganttPID;
+    vector<int> ganttTime;
+    ganttTime.push_back(0);
+
+    int lastPID = -1;
+
+    while(completed < n) {
+
+        int idx = -1;
+        int maxRemaining = -1;
+
+        // Find process with maximum remaining time
+        for(int i = 0; i < n; i++) {
+            if(p[i].arrival <= currentTime && p[i].remaining > 0) {
+                if(p[i].remaining > maxRemaining) {
+                    maxRemaining = p[i].remaining;
+                    idx = i;
+                }
+            }
+        }
+
+        // If no process available
+        if(idx == -1) {
+            currentTime++;
+            continue;
+        }
+
+        // Gantt Chart entry (only when process changes)
+        if(lastPID != p[idx].pid) {
+            ganttPID.push_back(p[idx].pid);
+            ganttTime.push_back(currentTime);
+            lastPID = p[idx].pid;
+        }
+
+        // Execute for 1 unit
+        p[idx].remaining--;
+        currentTime++;
+
+        // If process completes
+        if(p[idx].remaining == 0) {
+            p[idx].completion = currentTime;
+            p[idx].turnaround = p[idx].completion - p[idx].arrival;
+            p[idx].waiting = p[idx].turnaround - p[idx].burst;
+            completed++;
+        }
+    }
+
+    // Fix last time in Gantt
+    ganttTime.push_back(currentTime);
+
+    // Display Process Table
+    cout << "\n\nProcess Table:\n";
+    cout << "-----------------------------------------------------------------\n";
+    cout << "PID\tAT\tBT\tCT\tWT\tTAT\n";
+    cout << "-----------------------------------------------------------------\n";
+
+    float totalWT = 0, totalTAT = 0;
+
+    for(int i = 0; i < n; i++) {
+        cout << "P" << p[i].pid << "\t"
+             << p[i].arrival << "\t"
+             << p[i].burst << "\t"
+             << p[i].completion << "\t"
+             << p[i].waiting << "\t"
+             << p[i].turnaround << "\n";
+
+        totalWT += p[i].waiting;
+        totalTAT += p[i].turnaround;
+    }
+
+    cout << "-----------------------------------------------------------------\n";
+    cout << fixed << setprecision(2);
+    cout << "\nAverage Waiting Time: " << totalWT/n;
+    cout << "\nAverage Turnaround Time: " << totalTAT/n;
+
+    // Gantt Chart
+    cout << "\n\nGantt Chart:\n ";
+	
+	for(int i = 0; i < ganttPID.size(); i++)
+        cout << "P" << ganttPID[i] <<"("<< ganttTime[i]<<"-"<<ganttTime[i+1]<<") | " ;
+    
+
+    cout << endl;
+
+    return 0;
+}
