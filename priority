@@ -1,0 +1,75 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct Process {
+    int pid;
+    int burst;
+    int priority;
+    int waiting;
+    int turnaround;
+};
+
+int main() {
+    int n;
+    cout << "Enter number of processes: ";
+    cin >> n;
+
+    vector<Process> p(n);
+
+    // Input
+    for(int i = 0; i < n; i++) {
+        p[i].pid = i + 1;
+
+        cout << "\nProcess " << i + 1 << endl;
+        cout << "Enter Burst Time: ";
+        cin >> p[i].burst;
+
+        cout << "Enter Priority (Lower number = Higher priority): ";
+        cin >> p[i].priority;
+    }
+
+    // Sort by priority (ascending)
+    sort(p.begin(), p.end(), [](Process a, Process b) {
+        return a.priority < b.priority;
+    });
+
+    // Calculate waiting time and turnaround time
+    p[0].waiting = 0;
+    p[0].turnaround = p[0].burst;
+
+    for(int i = 1; i < n; i++) {
+        p[i].waiting = p[i-1].waiting + p[i-1].burst;
+        p[i].turnaround = p[i].waiting + p[i].burst;
+    }
+
+    // Output Gantt Chart
+    cout << "\nGantt Chart:\n| ";
+    for(int i = 0; i < n; i++) {
+        cout << "P" << p[i].pid << " | ";
+    }
+
+    // Display Table
+    float total_wt = 0, total_tat = 0;
+
+    cout << "\n\nProcess\tBurst\tPriority\tWaiting\tTurnaround\n";
+    for(int i = 0; i < n; i++) {
+        cout << "P" << p[i].pid << "\t"
+             << p[i].burst << "\t"
+             << p[i].priority << "\t\t"
+             << p[i].waiting << "\t"
+             << p[i].turnaround << endl;
+
+        total_wt += p[i].waiting;
+        total_tat += p[i].turnaround;
+    }
+
+    cout << "\nAverage Waiting Time: " << total_wt / n;
+    cout << "\nAverage Turnaround Time: " << total_tat / n << endl;
+
+    return 0;
+} 
+
+ 
