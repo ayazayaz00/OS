@@ -1,0 +1,245 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+using namespace std;
+
+// Print Gantt Chart
+void printGantt(vector<int> seq) {
+    cout << "\nGantt Chart:\n";
+    for (int i : seq) {
+        cout << "| " << i << " ";
+    }
+    cout << "|\n";
+}
+
+// ---------------- FCFS ----------------
+void FCFS(vector<int> req, int head) {
+    int total = 0;
+    vector<int> seq;
+    seq.push_back(head);
+
+    for (int i : req) {
+        total += abs(i - head);
+        head = i;
+        seq.push_back(head);
+    }
+
+    cout << "\n--- FCFS ---\n";
+    printGantt(seq);
+    cout << "Total Head Movement: " << total << endl;
+}
+
+// ---------------- SSTF ----------------
+void SSTF(vector<int> req, int head) {
+    int n = req.size(), total = 0;
+    vector<bool> visited(n, false);
+    vector<int> seq;
+    seq.push_back(head);
+
+    for (int i = 0; i < n; i++) {
+        int minDist = INT_MAX, index = -1;
+
+        for (int j = 0; j < n; j++) {
+            if (!visited[j] && abs(req[j] - head) < minDist) {
+                minDist = abs(req[j] - head);
+                index = j;
+            }
+        }
+
+        visited[index] = true;
+        total += abs(req[index] - head);
+        head = req[index];
+        seq.push_back(head);
+    }
+
+    cout << "\n--- SSTF ---\n";
+    printGantt(seq);
+    cout << "Total Head Movement: " << total << endl;
+}
+
+// ---------------- SCAN ----------------
+void SCAN(vector<int> req, int head, int diskSize) {
+    vector<int> seq;
+    int total = 0;
+
+    req.push_back(head);
+    sort(req.begin(), req.end());
+
+    int idx = find(req.begin(), req.end(), head) - req.begin();
+
+    seq.push_back(head);
+
+    // Move right
+    for (int i = idx + 1; i < req.size(); i++) {
+        total += abs(req[i] - head);
+        head = req[i];
+        seq.push_back(head);
+    }
+
+    // Go to end
+    total += abs((diskSize - 1) - head);
+    head = diskSize - 1;
+    seq.push_back(head);
+
+    // Move left
+    for (int i = idx - 1; i >= 0; i--) {
+        total += abs(req[i] - head);
+        head = req[i];
+        seq.push_back(head);
+    }
+
+    cout << "\n--- SCAN ---\n";
+    printGantt(seq);
+    cout << "Total Head Movement: " << total << endl;
+}
+
+// ---------------- C-SCAN ----------------
+void CSCAN(vector<int> req, int head, int diskSize) {
+    vector<int> seq;
+    int total = 0;
+
+    req.push_back(head);
+    sort(req.begin(), req.end());
+
+    int idx = find(req.begin(), req.end(), head) - req.begin();
+
+    seq.push_back(head);
+
+    // Move right
+    for (int i = idx + 1; i < req.size(); i++) {
+        total += abs(req[i] - head);
+        head = req[i];
+        seq.push_back(head);
+    }
+
+    // Jump to start
+    total += abs((diskSize - 1) - head);
+    head = 0;
+    total += (diskSize - 1);
+    seq.push_back(diskSize - 1);
+    seq.push_back(head);
+
+    // Continue from start
+    for (int i = 0; i < idx; i++) {
+        total += abs(req[i] - head);
+        head = req[i];
+        seq.push_back(head);
+    }
+
+    cout << "\n--- C-SCAN ---\n";
+    printGantt(seq);
+    cout << "Total Head Movement: " << total << endl;
+}
+
+// ---------------- LOOK ----------------
+void LOOK(vector<int> req, int head) {
+    vector<int> seq;
+    int total = 0;
+
+    req.push_back(head);
+    sort(req.begin(), req.end());
+
+    int idx = find(req.begin(), req.end(), head) - req.begin();
+
+    seq.push_back(head);
+
+    // Move right
+    for (int i = idx + 1; i < req.size(); i++) {
+        total += abs(req[i] - head);
+        head = req[i];
+        seq.push_back(head);
+    }
+
+    // Move left
+    for (int i = idx - 1; i >= 0; i--) {
+        total += abs(req[i] - head);
+        head = req[i];
+        seq.push_back(head);
+    }
+
+    cout << "\n--- LOOK ---\n";
+    printGantt(seq);
+    cout << "Total Head Movement: " << total << endl;
+}
+
+// ---------------- C-LOOK ----------------
+void CLOOK(vector<int> req, int head) {
+    vector<int> seq;
+    int total = 0;
+
+    req.push_back(head);
+    sort(req.begin(), req.end());
+
+    int idx = find(req.begin(), req.end(), head) - req.begin();
+
+    seq.push_back(head);
+
+    // Move right
+    for (int i = idx + 1; i < req.size(); i++) {
+        total += abs(req[i] - head);
+        head = req[i];
+        seq.push_back(head);
+    }
+
+    // Jump to lowest
+    if (idx > 0) {
+        total += abs(head - req[0]);
+        head = req[0];
+        seq.push_back(head);
+    }
+
+    // Continue
+    for (int i = 1; i < idx; i++) {
+        total += abs(req[i] - head);
+        head = req[i];
+        seq.push_back(head);
+    }
+
+    cout << "\n--- C-LOOK ---\n";
+    printGantt(seq);
+    cout << "Total Head Movement: " << total << endl;
+}
+
+// ---------------- MAIN MENU ----------------
+int main() {
+    int n, head, diskSize, choice;
+    vector<int> req;
+
+    cout << "Enter number of requests: ";
+    cin >> n;
+
+    cout << "Enter request sequence:\n";
+    for (int i = 0; i < n; i++) {
+        int x;
+        cin >> x;
+        req.push_back(x);
+    }
+
+    cout << "Enter initial head position: ";
+    cin >> head;
+
+    cout << "Enter disk size: ";
+    cin >> diskSize;
+
+    do {
+        cout << "\n===== Disk Scheduling Menu =====\n";
+        cout << "1. FCFS\n2. SSTF\n3. SCAN\n4. C-SCAN\n5. LOOK\n6. C-LOOK\n0. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: FCFS(req, head); break;
+            case 2: SSTF(req, head); break;
+            case 3: SCAN(req, head, diskSize); break;
+            case 4: CSCAN(req, head, diskSize); break;
+            case 5: LOOK(req, head); break;
+            case 6: CLOOK(req, head); break;
+            case 0: cout << "Exiting...\n"; break;
+            default: cout << "Invalid choice!\n";
+        }
+
+    } while (choice != 0);
+
+    return 0;
+}
